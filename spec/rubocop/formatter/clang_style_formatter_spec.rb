@@ -71,6 +71,26 @@ RSpec.describe RuboCop::Formatter::ClangStyleFormatter do
       end
     end
 
+    context 'when the source contains tabs' do
+      it 'aligns highlight marker correctly' do
+        cop = RuboCop::Cop::Cop.new
+        source_buffer = Parser::Source::Buffer.new('test', 1)
+        source_buffer.source = "\tyaba"
+        cop.add_offense(
+          nil,
+          location: Parser::Source::Range.new(source_buffer, 1, 5),
+          message: 'message 1'
+        )
+
+        formatter.report_file('test', cop.offenses)
+        expect(output.string).to eq <<-OUTPUT.strip_indent
+          test:1:2: C: message 1
+            yaba
+            ^^^^
+        OUTPUT
+      end
+    end
+
     context 'when the offending source spans multiple lines' do
       it 'displays the first line with ellipses' do
         source = <<-RUBY.strip_indent
